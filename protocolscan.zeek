@@ -1,28 +1,34 @@
+# Mpeg-ts packet inspection script.
+# 02/11/2024
+
 module Mpegtsdetect;
 
+# create a logging structure
 export {
     redef  enum Log::ID += { Mpegtsdetect::LOG };
 
+    # is it a valid mpeg-ts packet
     option valid = "false";
 
-# create log for every Mpeg-ts event
+    # create log for every Mpeg-ts event
     type Info: record {
         packet_time: time &log;
         source_ip: addr &log;
         source_port: port &log;
         receive_ip: addr &log;
         receive_port: port &log;
+        payload_size: int &log;
         valid: string &log;
     };
 }
 
+# create log file.
 event zeek_init() 
 {
     Log::create_stream{LOG, [$colums=Info, $path="MpegtsDetect"]};
 }
 
 # Enhanced Zeek script to log TCP and UDP connections, detect MPEG-TS packets, and verify DNS packets
-
 # Event for each new TCP or UDP connection
 event new_connection(c: connection)
 {
@@ -63,6 +69,7 @@ event udp_contents(c: connection, is_orig: bool, payload: string)
                              $source_port = c$id$orig_p,
                              $receive_ip = c$id$resp_h,
                              $receive_port = c$id$resp_p,
+                             $payload_size = |payload|,
                              $valid = valid));
     }
 
