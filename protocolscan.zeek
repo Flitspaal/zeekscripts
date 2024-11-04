@@ -3,12 +3,17 @@
 
 module Mpegtsdetect;
 
+
+
 # create a logging structure
 export {
     redef  enum Log::ID += { Mpegtsdetect::LOG };
 
     # is it a valid mpeg-ts packet
-    option valid = "false";
+    #option valid = "false";
+
+    # global valid check for mpeg-ts packets
+    global valid_check: string = "false";
 
     # create log for every Mpeg-ts event
     type Info: record {
@@ -25,7 +30,7 @@ export {
 # create log file.
 event zeek_init() 
 {
-    Log::create_stream{LOG, [$colums=Info, $path="MpegtsDetect"]};
+    Log::create_stream(LOG, [$columns=Info, $path="MpegtsDetect"]);
 }
 
 # Enhanced Zeek script to log TCP and UDP connections, detect MPEG-TS packets, and verify DNS packets
@@ -50,6 +55,7 @@ event new_connection(c: connection)
 # Event for inspecting UDP payloads to detect MPEG-TS packets and verify DNS packets
 event udp_contents(c: connection, is_orig: bool, payload: string)
 {
+   
     # Detect MPEG-TS packets on port 5555/udp
     if (c$id$resp_p == 5555/udp || c$id$orig_p == 5555/udp) {
         print fmt("Checking MPEG-TS payload from %s:%d -> %s:%d", c$id$orig_h, c$id$orig_p, c$id$resp_h, c$id$resp_p);
@@ -57,11 +63,11 @@ event udp_contents(c: connection, is_orig: bool, payload: string)
         # Check if the payload length and first byte indicate an MPEG-TS packet
         if (|payload| >= 188 && payload[0] == "\x47") {
             print fmt("Real MPEG-TS packet detected: %s:%d -> %s:%d", c$id$orig_h, c$id$orig_p, c$id$resp_h, c$id$resp_p);
-            valid = "true";
+            valid_check = "true";
         }
         else {
             print fmt("Non-MPEG-TS packet or incomplete data: %s:%d -> %s:%d", c$id$orig_h, c$id$orig_p, c$id$resp_h, c$id$resp_p);
-            valid = "false";
+            valid_check = "false";
         }
         # create log for Mpeg-ts event
         Log::write(LOG, Info($packet_time = network_time(),
@@ -70,7 +76,7 @@ event udp_contents(c: connection, is_orig: bool, payload: string)
                              $receive_ip = c$id$resp_h,
                              $receive_port = c$id$resp_p,
                              $payload_size = |payload|,
-                             $valid = valid));
+                             $valid = valid_check));
     }
 
     # Verify DNS packets on port 53/udp
