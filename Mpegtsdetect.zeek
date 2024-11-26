@@ -1,10 +1,9 @@
-module Mpegtsdetect;
+odule Mpegtsdetect;
 
 # Define logs for different types of events
 export {
     redef enum Log::ID += {
         MPEGTS_LOG,  # Log for MPEG-TS packets
-        DNS_LOG,     # Log for DNS packets
         CONNECTION_LOG  # Log for connections
     };
 
@@ -38,17 +37,17 @@ export {
 # Create separate log files
 event zeek_init() {
     # MPEG-TS log stream
-    Log::create_stream(MPEGTS_LOG, [$columns=MpegtsInfo, $path="mpeg_ts_packets"]);
+    Log::create_stream(MPEGTS_LOG, [$columns=MpegtsInfo, $path="MPEGTS_LOG"]);
 
     # Connection log stream
-    Log::create_stream(CONNECTION_LOG, [$columns=ConnectionInfo, $path="connection_events"]);
+    Log::create_stream(CONNECTION_LOG, [$columns=ConnectionInfo, $path="CONNECTION_LOG"]);
 }
 
 # Event for each new TCP or UDP connection
 event new_connection(c: connection) {
     # Log the connection details
     local log_entry: ConnectionInfo = [
-        connection_time=network_time(),
+        connection_time = network_time(),
         uid=c$uid,
         source_ip=c$id$orig_h,
         source_port=c$id$orig_p,
