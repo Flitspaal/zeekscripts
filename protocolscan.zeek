@@ -45,6 +45,8 @@ event zeek_init() {
 
 # Event for each new TCP or UDP connection
 event new_connection(c: connection) {
+    # Print new connection in terminal
+    print fmt("New connection: %s:%d -> %s:%d (Port: %s)", c$id$orig_h, c$id$orig_p, c$id$resp_h, c$id$resp_p, c$id$resp_p);
     # Log the connection details
     local log_entry: ConnectionInfo = [
         $connection_time = network_time(),
@@ -85,6 +87,8 @@ event udp_contents(c: connection, is_orig: bool, payload: string) {
 
 # Event triggered when a connection is terminated
 event connection_state_remove(c: connection) {
+    # Print termination in terminal
+    print fmt("Terminated connection: %s:%d -> %s:%d (Port: %s)", c$id$orig_h, c$id$orig_p, c$id$resp_h, c$id$resp_p, c$id$resp_p);
     # Log the connection termination
     local log_entry: ConnectionInfo = [
         $connection_time=network_time(),
