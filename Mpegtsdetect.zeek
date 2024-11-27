@@ -1,4 +1,5 @@
-odule Mpegtsdetect;
+@load base/protocols/conn
+@load base/frameworks/packet-filter
 
 # Define logs for different types of events
 export {
@@ -30,6 +31,7 @@ export {
         source_port: port &log;
         dest_ip: addr &log;
         dest_port: port &log;
+        protocol: transport_proto &log;  # Protocol type (TCP/UDP)
         status: string &log;
     };
 }
@@ -43,17 +45,22 @@ event zeek_init() {
     Log::create_stream(CONNECTION_LOG, [$columns=ConnectionInfo, $path="CONNECTION_LOG"]);
 }
 
-# Event for each new TCP or UDP connection
-event new_connection(c: connection) {
-    # Log the connection details
+# Event for each new connection
+event new_connection(c: connection)
+{
+    print fmt("New connection detected: %s:%d -> %s:%d (Proto: %s)", 
+              c$id$orig_h, c$id$orig_p, c$id$resp_h, c$id$resp_p, c$id$resp_p);  # Use c$id$proto here
+
+    # Log the connection details using the correct protocol from the connection record
     local log_entry: ConnectionInfo = [
-        connection_time = network_time(),
-        uid=c$uid,
-        source_ip=c$id$orig_h,
-        source_port=c$id$orig_p,
-        dest_ip=c$id$resp_h,
-        dest_port=c$id$resp_p,
-        status="New Connection"
+        $connection_time = network_time(),
+        $uid=c$uid,
+        $source_ip=c$id$orig_h,
+        $source_port=c$id$orig_p,
+        $dest_ip=c$id$resp_h,
+        $dest_port=c$id$resp_p,
+        $protocol=get_port_transport_proto(c$id$orig_p),  # Use c$proto here
+        $status="New Connection"
     ];
     Log::write(CONNECTION_LOG, log_entry);
 }
@@ -69,31 +76,35 @@ event udp_contents(c: connection, is_orig: bool, payload: string) {
         }
         # Log the MPEG-TS packet
         local log_entry: MpegtsInfo = [
-            packet_time=network_time(),
-            uid=c$uid,
-            source_ip=c$id$orig_h,
-            source_port=c$id$orig_p,
-            receive_ip=c$id$resp_h,
-            receive_port=c$id$resp_p,
-            payload_size=|payload|,
-            valid=valid_check
+            $packet_time=network_time(),
+            $uid=c$uid,
+            $source_ip=c$id$orig_h,
+            $source_port=c$id$orig_p,
+            $receive_ip=c$id$resp_h,
+            $receive_port=c$id$resp_p,
+            $payload_size=|payload|,
+            $valid=valid_check
         ];
         Log::write(MPEGTS_LOG, log_entry);
     }
-
 }
 
 # Event triggered when a connection is terminated
 event connection_state_remove(c: connection) {
+    # Print termination in terminal
+    print fmt("Terminated connection: %s:%d -> %s:%d (Port: %s)", 
+              c$id$orig_h, c$id$orig_p, c$id$resp_h, c$id$resp_p, c$id$resp_p);  # Use c$proto here
+
     # Log the connection termination
     local log_entry: ConnectionInfo = [
-        connection_time=network_time(),
-        uid=c$uid,
-        source_ip=c$id$orig_h,
-        source_port=c$id$orig_p,
-        dest_ip=c$id$resp_h,
-        dest_port=c$id$resp_p,
-        status="Connection Terminated"
+        $connection_time=network_time(),
+        $uid=c$uid,
+        $source_ip=c$id$orig_h,
+        $source_port=c$id$orig_p,
+        $dest_ip=c$id$resp_h,
+        $dest_port=c$id$resp_p,
+        $protocol=get_port_transport_proto(c$id$orig_p),  # Use c$proto here
+        $status="Connection Terminated"
     ];
     Log::write(CONNECTION_LOG, log_entry);
 }
