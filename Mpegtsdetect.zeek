@@ -1,9 +1,8 @@
-@load base/protocols/conn
-@load base/frameworks/packet-filter
-
 # Define logs for different types of events
-export {
-    redef enum Log::ID += {
+export 
+{
+    redef enum Log::ID += 
+    {
         MPEGTS_LOG,  # Log for MPEG-TS packets
         CONNECTION_LOG  # Log for connections
     };
@@ -12,7 +11,8 @@ export {
     global valid_check: string = "false";
 
     # MPEG-TS packet log structure
-    type MpegtsInfo: record {
+    type MpegtsInfo: record 
+    {
         packet_time: time &log;
         uid: string &log;
         source_ip: addr &log;
@@ -24,20 +24,22 @@ export {
     };
 
     # Connection log structure
-    type ConnectionInfo: record {
+    type ConnectionInfo: record 
+    {
         connection_time: time &log;
         uid: string &log;
         source_ip: addr &log;
         source_port: port &log;
         dest_ip: addr &log;
         dest_port: port &log;
-        protocol: transport_proto &log;  # Protocol type (TCP/UDP)
+        protocol: transport_proto &log;  # transport Protocol type (TCP/UDP)
         status: string &log;
     };
 }
 
 # Create separate log files
-event zeek_init() {
+event zeek_init() 
+{
     # MPEG-TS log stream
     Log::create_stream(MPEGTS_LOG, [$columns=MpegtsInfo, $path="MPEGTS_LOG"]);
 
@@ -66,7 +68,8 @@ event new_connection(c: connection)
 }
 
 # Event for inspecting UDP payloads to detect MPEG-TS packets and verify DNS packets
-event udp_contents(c: connection, is_orig: bool, payload: string) {
+event udp_contents(c: connection, is_orig: bool, payload: string) 
+{
     # Detect MPEG-TS packets on port 5555/udp
     if (c$id$resp_p == 5555/udp || c$id$orig_p == 5555/udp) {
         if (|payload| >= 188 && payload[0] == "\x47") {
@@ -90,7 +93,8 @@ event udp_contents(c: connection, is_orig: bool, payload: string) {
 }
 
 # Event triggered when a connection is terminated
-event connection_state_remove(c: connection) {
+event connection_state_remove(c: connection) 
+{
     # Print termination in terminal
     print fmt("Terminated connection: %s:%d -> %s:%d (Port: %s)", 
               c$id$orig_h, c$id$orig_p, c$id$resp_h, c$id$resp_p, c$id$resp_p);  # Use c$proto here
