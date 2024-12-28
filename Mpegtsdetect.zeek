@@ -7,8 +7,15 @@ export
         CONNECTION_LOG  # Log for connections
     };
 
+    # All global variables:
     # Global valid check for MPEG-TS packets
     global valid_check: string = "false";
+    # Global counter for invalid logs
+    global invalid_count: count = 0;
+    # Global queue for the last 100 logs.
+    global last_100_logs: table[string] of transport_proto = table();
+    # global temp
+    global temp: count = 0;
 
     # MPEG-TS packet log structure
     type MpegtsInfo: record 
@@ -65,7 +72,24 @@ event new_connection(c: connection)
         $status="New Connection"
     ];
     Log::write(CONNECTION_LOG, log_entry);
+    print fmt("%d", |last_100_logs|);
+    if (|last_100_logs| >= 10)
+    {
+        for(a in last_100_logs)
+        {
+            temp += 1;
+            print fmt("%d", temp);
+            if (temp == |last_100_logs|)
+            {
+	            delete last_100_logs[a];
+	            temp = 0;
+            }
+    }
+    
+    last_100_logs[c$uid] = get_port_transport_proto(c$id$orig_p);
+    print last_100_logs[c$uid];
 }
+
 
 # Event for inspecting UDP payloads to detect MPEG-TS packets and verify DNS packets
 event udp_contents(c: connection, is_orig: bool, payload: string) 
@@ -111,4 +135,13 @@ event connection_state_remove(c: connection)
         $status="Connection Terminated"
     ];
     Log::write(CONNECTION_LOG, log_entry);
+}
+
+event zeek_done()
+{
+    print fmt("amount: %d", |last_100_logs|);
+    for([a], uid in last_100_logs)
+    {
+        print fmt("transport protocol: %s, uid: %s",last_100_logs[a] , a);
+    }
 }
