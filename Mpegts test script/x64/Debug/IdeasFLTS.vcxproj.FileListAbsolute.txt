@@ -1,8 +1,0 @@
-C:\Users\Frits Duindam\Documents\GitHub\Ideas\IdeasFLTS\x64\Debug\IdeasFLTS.vcxproj.MdMergeInputs.cache
-C:\Users\Frits Duindam\Documents\GitHub\Ideas\IdeasFLTS\x64\Debug\IdeasFLTS.vcxproj.cppwinrt_plat.cache
-C:\Users\Frits Duindam\Documents\GitHub\Ideas\IdeasFLTS\x64\Debug\IdeasFLTS.vcxproj.cppwinrt_comp.cache
-C:\Users\Frits Duindam\Documents\GitHub\Ideas\IdeasFLTS\x64\Debug\IdeasFLTS.exe
-C:\Users\Frits Duindam\Documents\GitHub\zeekscripts\Mpegts test script\x64\Debug\IdeasFLTS.vcxproj.MdMergeInputs.cache
-C:\Users\Frits Duindam\Documents\GitHub\zeekscripts\Mpegts test script\x64\Debug\IdeasFLTS.vcxproj.cppwinrt_plat.cache
-C:\Users\Frits Duindam\Documents\GitHub\zeekscripts\Mpegts test script\x64\Debug\IdeasFLTS.vcxproj.cppwinrt_comp.cache
-C:\Users\Frits Duindam\Documents\GitHub\zeekscripts\Mpegts test script\x64\Debug\IdeasFLTS.exe
