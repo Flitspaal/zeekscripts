@@ -72,18 +72,16 @@ event new_connection(c: connection)
         $status="New Connection"
     ];
     Log::write(CONNECTION_LOG, log_entry);
-    print fmt("%d", |last_100_logs|);
+    #print fmt("%d", |last_100_logs|);
     if (|last_100_logs| >= 10)
     {
         for(a in last_100_logs)
         {
-            temp += 1;
-            print fmt("%d", temp);
-            if (temp == |last_100_logs|)
-            {
-	            delete last_100_logs[a];
-	            temp = 0;
-            }
+	    delete last_100_logs[a];
+	    print fmt("%d", |last_100_logs|);
+	    return;
+        }
+        return;
     }
     
     last_100_logs[c$uid] = get_port_transport_proto(c$id$orig_p);
@@ -94,8 +92,15 @@ event new_connection(c: connection)
 # Event for inspecting UDP payloads to detect MPEG-TS packets and verify DNS packets
 event udp_contents(c: connection, is_orig: bool, payload: string) 
 {
-    # Detect MPEG-TS packets on port 5555/udp
-    if (c$id$resp_p == 5555/udp || c$id$orig_p == 5555/udp) {
+    # payload starts with a PRI (priority) header that provides info about the serverity and facilitate of the log message
+    if (c$id$resp_p == 514/udp) {
+        if(payload[0] == "<" && payload[1] in "0123456789") {
+            print fmt("syslog packet");
+        }
+        else { print fmt("fake syslog packet"); }
+    }
+    # Detect MPEG-TS packets on port 5555/udp  // || c$id$orig_p == 5555/udp
+    if (c$id$resp_p == 5555/udp) {
         if (|payload| >= 188 && payload[0] == "\x47") {
             valid_check = "true";
         } else {
@@ -139,9 +144,12 @@ event connection_state_remove(c: connection)
 
 event zeek_done()
 {
+    print fmt("-------------------------------------------");
     print fmt("amount: %d", |last_100_logs|);
+    print fmt("-------------------------------------------");
     for([a], uid in last_100_logs)
     {
         print fmt("transport protocol: %s, uid: %s",last_100_logs[a] , a);
     }
+    print fmt("-------------------------------------------");
 }
