@@ -72,8 +72,8 @@ event new_connection(c: connection)
         $status="New Connection"
     ];
     Log::write(CONNECTION_LOG, log_entry);
-    #print fmt("%d", |last_100_logs|);
-    if (|last_100_logs| >= 10)
+    # add new connection to the table
+    if (|last_100_logs| >= 100)
     {
         for(a in last_100_logs)
         {
@@ -95,7 +95,7 @@ event udp_contents(c: connection, is_orig: bool, payload: string)
     # payload starts with a PRI (priority) header that provides info about the serverity and facilitate of the log message
     if (c$id$resp_p == 514/udp) {
         if(payload[0] == "<" && payload[1] in "0123456789") {
-            print fmt("syslog packet");
+            # print fmt("syslog packet");
         }
         else { print fmt("fake syslog packet"); }
     }
